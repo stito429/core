@@ -1216,7 +1216,7 @@ async def test_two_step_subentry_flow(hass: HomeAssistant, client) -> None:
                 async def async_step_finish(self, user_input=None):
                     if user_input:
                         return self.async_create_entry(
-                            title="Mock title", data=user_input, subentry_id="test"
+                            title="Mock title", data=user_input, unique_id="test"
                         )
 
                     return self.async_show_form(
@@ -1268,9 +1268,9 @@ async def test_two_step_subentry_flow(hass: HomeAssistant, client) -> None:
             "description": None,
             "flow_id": flow_id,
             "handler": "test1",
-            "subentry_id": "test",
             "title": "Mock title",
             "type": "create_entry",
+            "unique_id": "test",
         }
 
 
@@ -2774,9 +2774,12 @@ async def test_list_subentries(
     entry = MockConfigEntry(
         domain="test",
         state=core_ce.ConfigEntryState.LOADED,
-        subentries=[
+        subentries_data=[
             core_ce.ConfigSubentryData(
-                data={"test": "test"}, subentry_id="test", title="Mock title"
+                data={"test": "test"},
+                subentry_id="mock_id",
+                title="Mock title",
+                unique_id="test",
             )
         ],
     )
@@ -2794,9 +2797,9 @@ async def test_list_subentries(
     response = await ws_client.receive_json()
 
     assert response["success"]
-    assert response["result"] == {
-        "subentries": {"test": {"title": "Mock title"}},
-    }
+    assert response["result"] == [
+        {"subentry_id": "mock_id", "title": "Mock title", "unique_id": "test"},
+    ]
 
     # Try listing subentries for an unknown entry
     await ws_client.send_json_auto_id(
@@ -2824,9 +2827,9 @@ async def test_delete_subentry(
     entry = MockConfigEntry(
         domain="test",
         state=core_ce.ConfigEntryState.LOADED,
-        subentries=[
+        subentries_data=[
             core_ce.ConfigSubentryData(
-                data={"test": "test"}, subentry_id="test", title="Mock title"
+                data={"test": "test"}, subentry_id="mock_id", title="Mock title"
             )
         ],
     )
@@ -2839,7 +2842,7 @@ async def test_delete_subentry(
         {
             "type": "config_entries/subentries/delete",
             "entry_id": entry.entry_id,
-            "subentry_id": "test",
+            "subentry_id": "mock_id",
         }
     )
     response = await ws_client.receive_json()
@@ -2856,16 +2859,14 @@ async def test_delete_subentry(
     response = await ws_client.receive_json()
 
     assert response["success"]
-    assert response["result"] == {
-        "subentries": {},
-    }
+    assert response["result"] == []
 
     # Try deleting the subentry again
     await ws_client.send_json_auto_id(
         {
             "type": "config_entries/subentries/delete",
             "entry_id": entry.entry_id,
-            "subentry_id": "test",
+            "subentry_id": "mock_id",
         }
     )
     response = await ws_client.receive_json()
@@ -2881,7 +2882,7 @@ async def test_delete_subentry(
         {
             "type": "config_entries/subentries/delete",
             "entry_id": "no_such_entry",
-            "subentry_id": "test",
+            "subentry_id": "mock_id",
         }
     )
     response = await ws_client.receive_json()
