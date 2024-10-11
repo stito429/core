@@ -334,7 +334,7 @@ class ConfigSubentry:
     title: str
     unique_id: str | None
 
-    def as_dict(self) -> dict[str, Any]:
+    def as_dict(self) -> ConfigSubentryData:
         """Return dictionary version of this subentry."""
         return {
             "data": dict(self.data),
@@ -2283,12 +2283,12 @@ class ConfigEntries:
             _setter(entry, "options", MappingProxyType(options))
 
         if subentries is not UNDEFINED:
-            subentry_dict = MappingProxyType(
+            subentries_dict = MappingProxyType(
                 {subentry.subentry_id: subentry for subentry in subentries}
             )
-            if entry.subentries != subentry_dict:
+            if entry.subentries != subentries_dict:
                 changed = True
-                _setter(entry, "subentries", subentry_dict)
+                _setter(entry, "subentries", subentries_dict)
 
         if not changed:
             return False
@@ -3122,7 +3122,7 @@ class ConfigSubentryFlowManager(
     ) -> ConfigSubentryFlow:
         """Create a subentry flow for a config entry.
 
-        Entry_id and flow.handler is the same thing to map entry with flow.
+        The entry_id and the flow.handler is the same thing to map entry with flow.
         """
         entry = self._async_get_config_entry(handler_key)
         handler = await _async_get_flow_handler(self.hass, entry.domain, {})
@@ -3135,7 +3135,7 @@ class ConfigSubentryFlowManager(
     ) -> SubentryFlowResult:
         """Finish a subentry flow and add a new subentry to the configuration entry.
 
-        Flow.handler and entry_id is the same thing to map flow with entry.
+        The flow.handler and the entry_id is the same thing to map flow with entry.
         """
         flow = cast(ConfigSubentryFlow, flow)
 
@@ -3217,7 +3217,7 @@ class OptionsFlowManager(
     ) -> OptionsFlow:
         """Create an options flow for a config entry.
 
-        Entry_id and flow.handler is the same thing to map entry with flow.
+        The entry_id and the flow.handler is the same thing to map entry with flow.
         """
         entry = self._async_get_config_entry(handler_key)
         handler = await _async_get_flow_handler(self.hass, entry.domain, {})
@@ -3233,7 +3233,7 @@ class OptionsFlowManager(
         This method is called when a flow step returns FlowResultType.ABORT or
         FlowResultType.CREATE_ENTRY.
 
-        Flow.handler and entry_id is the same thing to map flow with entry.
+        The flow.handler and the entry_id is the same thing to map flow with entry.
         """
         flow = cast(OptionsFlow, flow)
 
