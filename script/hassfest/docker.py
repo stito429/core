@@ -58,20 +58,10 @@ RUN \
 # Home Assistant S6-Overlay
 COPY rootfs /
 
-# Needs to be redefined inside the FROM statement to be set for RUN commands
-ARG BUILD_ARCH
-# Get go2rtc binary
-RUN \
-    case "${{BUILD_ARCH}}" in \
-        "aarch64") go2rtc_suffix='arm64' ;; \
-        "armhf") go2rtc_suffix='armv6' ;; \
-        "armv7") go2rtc_suffix='arm' ;; \
-        *) go2rtc_suffix=${{BUILD_ARCH}} ;; \
-    esac \
-    && curl -L https://github.com/AlexxIT/go2rtc/releases/download/v{go2rtc}/go2rtc_linux_${{go2rtc_suffix}} --output /bin/go2rtc \
-    && chmod +x /bin/go2rtc \
-    # Verify go2rtc can be executed
-    && go2rtc --version
+# Add go2rtc binary
+COPY --from=ghcr.io/alexxit/go2rtc:{go2rtc} /usr/local/bin/go2rtc /bin/go2rtc
+# Verify go2rtc can be executed
+RUN go2rtc --version
 
 WORKDIR /config
 """
